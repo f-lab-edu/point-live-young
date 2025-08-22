@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "order")
+@Table(name = "`order`")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Order {
