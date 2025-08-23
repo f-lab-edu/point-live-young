@@ -29,7 +29,7 @@ public class User {
 
     @Setter
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name ="user_role")
+    @Column(nullable = false, name = "user_role")
     private UserRole userRole;
 
     @Column(nullable = false, name = "created_at")
@@ -37,6 +37,10 @@ public class User {
 
     @Column(nullable = false)
     private LocalDate birthDate;
+
+    @Setter
+    @Column(name = "refresh_token", length = 500)
+    private String refreshToken;
 
     private User(String name, String email, String password, LocalDate birthDate) {
         this.name = name;
