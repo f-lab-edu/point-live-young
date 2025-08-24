@@ -32,7 +32,7 @@ public class UserService {
     @Transactional
     public void signUpUser(UserCreateRequest request) {
         if (userRepository.existsUserByEmail(request.getEmail())) {
-            //TODO
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
         String encodePassword = passwordEncoder.encode(request.getPassword());
 
