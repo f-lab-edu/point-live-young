@@ -1,36 +1,63 @@
 package com.pointliveyoung.forliveyoung.common.exception;
 
-import com.pointliveyoung.forliveyoung.common.response.ResponseEntityUtil;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ExceptionResponse> handleBusinessException(final BusinessException e) {
-        return ResponseEntityUtil.toResponseEntity(e.getExceptionCode());
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Objects.nonNull(e.getMessage()) ? e.getMessage() : "잘못된 요청입니다.");
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNoSuchElement(NoSuchElementException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Objects.nonNull(e.getMessage()) ? e.getMessage() : "요청한 리소스를 찾을 수 없습니다.");
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalState(IllegalStateException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Objects.nonNull(e.getMessage()) ? e.getMessage() : "잘못된 상태로 요청을 처리할 수 없습니다.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        String detail = e.getBindingResult().getFieldErrors().stream()
-                .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        return ResponseEntityUtil.toResponseEntity(ExceptionCode.INVALID_INPUT_VALUE, detail);
+    public ResponseEntity<String> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .findFirst()
+                .orElse("잘못된 요청입니다.");
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorMessage);
     }
 
-    @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
-    public ResponseEntity<ExceptionResponse> handleArgumentErrors(Exception e) {
-        return ResponseEntityUtil.toResponseEntity(ExceptionCode.INVALID_INPUT_VALUE, "요청 파라미터가 올바르지 않습니다.");
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<String> handleConstraintViolation(ConstraintViolationException e) {
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ExceptionResponse> handleException(Exception e) {
-        return ResponseEntityUtil.toResponseEntity(ExceptionCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
+    public ResponseEntity<String> handleException(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("서버 오류가 발생했습니다.");
     }
 }
