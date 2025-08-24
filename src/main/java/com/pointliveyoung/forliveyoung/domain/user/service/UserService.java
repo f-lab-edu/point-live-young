@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @Service
@@ -32,7 +33,7 @@ public class UserService {
     @Transactional
     public void signUpUser(UserCreateRequest request) {
         if (userRepository.existsUserByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new IllegalStateException("이미 존재하는 이메일입니다.");
         }
         String encodePassword = passwordEncoder.encode(request.getPassword());
 
@@ -42,10 +43,10 @@ public class UserService {
     @Transactional
     public TokenResponse loginUser(LoginRequest request, HttpServletResponse response) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 이메일의 사용자가 존재하지 않습니다."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new SecurityException("비밀번호가 일치하지 않습니다.");
         }
 
         String accessToken = jwtTokenUtil.generateAccessToken(user.getId(), user.getUserRole());
@@ -68,17 +69,17 @@ public class UserService {
         String refreshToken = getRefreshTokenFromCookie(request);
 
         if (!jwtTokenUtil.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 Refresh Token 입니다.");
+            throw new SecurityException("유효하지 않은 Refresh Token 입니다.");
         }
 
         String userId = jwtTokenUtil.getUserId(refreshToken);
 
         User user = userRepository.findById(Integer.parseInt(userId))
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
 
 
         if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new IllegalArgumentException("Refresh Token이 일치하지 않습니다.");
+            throw new SecurityException("Refresh Token이 일치하지 않습니다.");
         }
 
         String newAccessToken = jwtTokenUtil.generateAccessToken(user.getId(), user.getUserRole());
@@ -86,17 +87,18 @@ public class UserService {
         return new TokenResponse(newAccessToken);
     }
 
+    @Transactional
     public void logoutUser(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
 
         if (!jwtTokenUtil.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 Refresh Token 입니다.");
+            throw new SecurityException("유효하지 않은 Refresh Token 입니다.");
         }
 
         String userId = jwtTokenUtil.getUserId(refreshToken);
 
         User user = userRepository.findById(Integer.parseInt(userId))
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
 
         user.setRefreshToken(null);
 
@@ -112,14 +114,14 @@ public class UserService {
 
     private String getRefreshTokenFromCookie(HttpServletRequest request) {
         if (Objects.isNull(request.getCookies())) {
-            throw new IllegalArgumentException("쿠키가 존재하지 않습니다.");
+            throw new NoSuchElementException("쿠키가 존재하지 않습니다.");
         }
 
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName()))
                 .findFirst()
                 .map(Cookie::getValue)
-                .orElseThrow(() -> new IllegalArgumentException("Refresh Token 쿠키가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("Refresh Token 쿠키가 존재하지 않습니다."));
     }
 
 

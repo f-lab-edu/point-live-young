@@ -64,14 +64,9 @@ public class JwtTokenUtil {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (ExpiredJwtException e) {
-
-        } catch (JwtException e) {
-
         } catch (Exception e) {
+            return false;
         }
-
-        return false;
     }
 
 
