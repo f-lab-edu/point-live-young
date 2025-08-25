@@ -20,10 +20,10 @@ public class UserPointLot {
     @Column(nullable = false, name = "point_balance")
     private Integer pointBalance;
 
-    @Column(nullable = false, name = "created_at")
+    @Column(nullable = false, name = "created_at", columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, name = "expiration_at")
+    @Column(nullable = false, name = "expiration_at", columnDefinition = "DATETIME(0)")
     private LocalDateTime expirationAt;
 
     @Enumerated(EnumType.STRING)
