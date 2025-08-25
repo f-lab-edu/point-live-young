@@ -1,5 +1,6 @@
 package com.pointliveyoung.forliveyoung.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pointliveyoung.forliveyoung.domain.product.entity.Product;
 import com.pointliveyoung.forliveyoung.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -20,13 +21,14 @@ public class Order {
     @Column(nullable = false, name = "purchase_price")
     private Integer purchasePrice;
 
-    @Column(nullable = false, name = "created_at")
+    @JsonFormat
+    @Column(nullable = false, name = "created_at", columnDefinition = "DATETIME(0)")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, name = "updated_at")
+    @Column(nullable = false, name = "updated_at", columnDefinition = "DATETIME(0)")
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false, name = "expired_at")
+    @Column(nullable = false, name = "expired_at", columnDefinition = "DATETIME(0)")
     private LocalDateTime expiredAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

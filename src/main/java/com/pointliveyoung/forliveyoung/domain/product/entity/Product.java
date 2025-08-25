@@ -31,7 +31,6 @@ public class Product {
     private Integer stock;
 
     @Min(1)
-    @Setter
     @Column(nullable = false)
     @Check(constraints = "price > 0")
     private Integer price;
