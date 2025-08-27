@@ -36,7 +36,7 @@ public class JwtTokenUtil {
     private String createToken(int userId, long validity, UserRole role) {
         Claims claims = Jwts.claims();
         claims.setSubject(String.valueOf(userId));
-        claims.put("role", role);
+        claims.put("role", role.name());
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + (validity * 1000));
@@ -67,6 +67,11 @@ public class JwtTokenUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public UserRole getUserRole(String token) {
+        String roleName = parseClaims(token).get("role", String.class);
+        return UserRole.valueOf(roleName);
     }
 
 
