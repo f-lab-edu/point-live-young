@@ -43,7 +43,7 @@ public class UserService {
 
         String accessToken = jwtTokenUtil.generateAccessToken(user.getId(), user.getUserRole());
         String refreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getUserRole());
-        user.setRefreshToken(refreshToken);
+        user.changeRefreshToken(refreshToken);
 
 
         return new AuthTokens(accessToken, refreshToken);
@@ -66,7 +66,7 @@ public class UserService {
         String newAccessToken = jwtTokenUtil.generateAccessToken(user.getId(), user.getUserRole());
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getUserRole());
 
-        user.setRefreshToken(newRefreshToken);
+        user.changeRefreshToken(newRefreshToken);
 
         return new AuthTokens(newAccessToken, newRefreshToken);
     }
@@ -82,7 +82,7 @@ public class UserService {
         User user = userRepository.findById(Integer.parseInt(userId))
                 .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
 
-        user.setRefreshToken(null);
+        user.invalidateRefreshToken();
     }
 
 

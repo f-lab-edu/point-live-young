@@ -162,7 +162,7 @@ class UserServiceTest {
     @DisplayName("renewTokens() 성공")
     void renewTokens_success() {
         String refreshToken = "refreshToken";
-        user.setRefreshToken(refreshToken);
+        user.changeRefreshToken(refreshToken);
 
         when(jwtTokenUtil.validateToken(refreshToken)).thenReturn(true);
         when(jwtTokenUtil.getUserId(refreshToken)).thenReturn("1");
@@ -224,7 +224,7 @@ class UserServiceTest {
     @DisplayName("logout() 성공")
     void logout_success() {
         String refreshToken = "refreshToken";
-        user.setRefreshToken(refreshToken);
+        user.changeRefreshToken(refreshToken);
 
         when(jwtTokenUtil.validateToken(refreshToken)).thenReturn(true);
         when(jwtTokenUtil.getUserId(refreshToken)).thenReturn("1");

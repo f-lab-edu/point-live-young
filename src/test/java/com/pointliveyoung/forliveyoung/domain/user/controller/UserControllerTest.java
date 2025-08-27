@@ -1,6 +1,7 @@
 package com.pointliveyoung.forliveyoung.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pointliveyoung.forliveyoung.domain.user.config.SecurityConfig;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.UserCreateRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
@@ -30,7 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(
         controllers = UserController.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthFilter.class) // ⬅️ 필터 제외
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthFilter.class)
+        }
 )
 @AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {

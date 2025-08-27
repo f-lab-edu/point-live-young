@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user")
@@ -16,18 +17,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Setter
     @Column(nullable = false, length = 50, name = "user_name")
     private String name;
 
     @Column(nullable = false, unique = true, length = 100, name = "user_email")
     private String email;
 
-    @Setter
     @Column(nullable = false, length = 100, name = "user_password")
     private String password;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "user_role")
     private UserRole userRole;
@@ -38,7 +36,6 @@ public class User {
     @Column(nullable = false)
     private LocalDate birthDate;
 
-    @Setter
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
@@ -53,5 +50,37 @@ public class User {
 
     public static User of(String name, String email, String password, LocalDate birthDate) {
         return new User(name, email, password, birthDate);
+    }
+
+    public void changeRefreshToken(String refreshToken) {
+        if (Objects.isNull(refreshToken) || refreshToken.isEmpty()) {
+            throw new IllegalArgumentException("리프레쉬 토큰은 null이거나 비어있을 수 없습니다.");
+        }
+        this.refreshToken = refreshToken;
+    }
+
+    public void invalidateRefreshToken() {
+        this.refreshToken = null;
+    }
+
+    public void changeName(String name) {
+        if (Objects.isNull(name) || name.isEmpty()) {
+            throw new IllegalArgumentException("name 은 null이거나 비어있을 수 없습니다.");
+        }
+        this.name = name;
+    }
+
+    public void changePassword(String password) {
+        if (Objects.isNull(password) || password.isEmpty()) {
+            throw new IllegalArgumentException("비밀번호는 null이거나 비어있을 수 없습니다.");
+        }
+        this.password = password;
+    }
+
+    public void changeUserRole(UserRole userRole) {
+        if (Objects.isNull(userRole)) {
+            throw new IllegalArgumentException("UserRole 은 null이거나 비어있을 수 없습니다.");
+        }
+        this.userRole = userRole;
     }
 }
