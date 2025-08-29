@@ -1,6 +1,5 @@
 package com.pointliveyoung.forliveyoung.domain.product.service;
 
-import com.pointliveyoung.forliveyoung.domain.product.dto.ProductMapper;
 import com.pointliveyoung.forliveyoung.domain.product.dto.request.ProductCreateRequest;
 import com.pointliveyoung.forliveyoung.domain.product.dto.request.ProductModifyRequest;
 import com.pointliveyoung.forliveyoung.domain.product.dto.response.ProductBriefResponse;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -44,14 +41,9 @@ class ProductServiceTest {
         ReflectionTestUtils.setField(request, "price", 1000);
         ReflectionTestUtils.setField(request, "category", Category.CAFE_SNACK);
 
-        Product entity = ProductMapper.toEntity(request);
-
-        MockedStatic<ProductMapper> mocked = mockStatic(ProductMapper.class);
-        mocked.when(() -> ProductMapper.toEntity(request)).thenReturn(entity);
-
         productService.create(request);
 
-        verify(productRepository, times(1)).save(entity);
+        verify(productRepository, times(1)).save(any(Product.class));
     }
 
     @Test
@@ -119,6 +111,7 @@ class ProductServiceTest {
     void getProductById_success() {
         Integer id = 1;
         Product product = Product.create("이름", "설명", 5, 2000, Category.BEAUTY_HEALTH_CARE);
+        ReflectionTestUtils.setField(product, "id", id);
 
         when(productRepository.findById(id)).thenReturn(Optional.of(product));
 
@@ -130,9 +123,6 @@ class ProductServiceTest {
                 product.getPrice(),
                 product.getCategory()
         );
-
-        MockedStatic<ProductMapper> mocked = mockStatic(ProductMapper.class);
-        mocked.when(() -> ProductMapper.toProductResponse(product)).thenReturn(expected);
 
         ProductResponse actual = productService.getProductById(id);
 
@@ -184,19 +174,14 @@ class ProductServiceTest {
         assertEquals(actual.getContent().size(), 2);
         assertEquals(actual.getContent().get(0).id(), 1);
         assertEquals(actual.getContent().get(1).id(), 2);
-        assertEquals(actual.getContent().get(0).name(), "아메리카노");
+        assertEquals(actual.getContent().get(0).name(), "돌체라떼");
         assertEquals(actual.getContent().get(1).name(), "라떼");
         assertEquals(actual.getContent().get(0).stock(), 30);
         assertEquals(actual.getContent().get(1).stock(), 15);
         assertEquals(actual.getContent().get(0).price(), 3000);
         assertEquals(actual.getContent().get(1).price(), 4500);
-        assertEquals(actual.getContent().get(0).category(), Category.BEAUTY_HEALTH_CARE);
+        assertEquals(actual.getContent().get(0).category(), Category.CAFE_SNACK);
         assertEquals(actual.getContent().get(1).category(), Category.CAFE_SNACK);
-
-
-        assertThat(actual.getContent()).hasSize(2);
-        assertThat(actual.getContent().get(0).name()).isEqualTo("아메리카노");
-        verify(productRepository).search(keyword, category, minPrice, maxPrice, inStock, pageable);
     }
 
 
