@@ -16,7 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
-import java.util.Objects;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,21 +37,11 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다."));
 
-        if (Objects.nonNull(request.getName())) {
-            product.changeName(request.getName());
-        }
-        if (Objects.nonNull(request.getDescription())) {
-            product.changeDescription(request.getDescription());
-        }
-        if (Objects.nonNull(request.getStock())) {
-            product.changeStock(request.getStock());
-        }
-        if (Objects.nonNull(request.getPrice())) {
-            product.changePrice(request.getPrice());
-        }
-        if (Objects.nonNull(request.getCategory())) {
-            product.changeCategory(request.getCategory());
-        }
+        Optional.ofNullable(request.getName()).ifPresent(product::changeName);
+        Optional.ofNullable(request.getDescription()).ifPresent(product::changeDescription);
+        Optional.ofNullable(request.getStock()).ifPresent(product::changeStock);
+        Optional.ofNullable(request.getPrice()).ifPresent(product::changePrice);
+        Optional.ofNullable(request.getCategory()).ifPresent(product::changeCategory);
     }
 
     @Transactional
