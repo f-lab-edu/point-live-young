@@ -1,5 +1,7 @@
 package com.pointliveyoung.forliveyoung.domain.user.service;
 
+import com.pointliveyoung.forliveyoung.domain.point.event.AttendancePointEvent;
+import com.pointliveyoung.forliveyoung.domain.point.event.SignUpPointEvent;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
 import com.pointliveyoung.forliveyoung.domain.user.token.JwtTokenUtil;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
@@ -7,10 +9,12 @@ import com.pointliveyoung.forliveyoung.domain.user.dto.request.UserCreateRequest
 import com.pointliveyoung.forliveyoung.domain.user.entity.User;
 import com.pointliveyoung.forliveyoung.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -20,6 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtTokenUtil jwtTokenUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
@@ -29,7 +34,9 @@ public class UserService {
         }
         String encodePassword = passwordEncoder.encode(request.getPassword());
 
-        userRepository.save(User.of(request.getName(), request.getEmail(), encodePassword, request.getBirthDate()));
+        User saveUser = userRepository.save(User.of(request.getName(), request.getEmail(), encodePassword, request.getBirthDate()));
+
+        eventPublisher.publishEvent(new SignUpPointEvent(saveUser));
     }
 
     @Transactional
@@ -44,6 +51,10 @@ public class UserService {
         String accessToken = jwtTokenUtil.generateAccessToken(user.getId(), user.getUserRole());
         String refreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getUserRole());
         user.changeRefreshToken(refreshToken);
+
+        eventPublisher.publishEvent(new AttendancePointEvent(user));
+
+        user.recordLogin(LocalDateTime.now());
 
 
         return new AuthTokens(accessToken, refreshToken);
