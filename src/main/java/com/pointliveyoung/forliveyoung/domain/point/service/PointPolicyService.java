@@ -1,10 +1,10 @@
-package com.pointliveyoung.forliveyoung.domain.point.repository;
+package com.pointliveyoung.forliveyoung.domain.point.service;
 
-import com.pointliveyoung.forliveyoung.domain.point.dto.PointPolicyMapper;
-import com.pointliveyoung.forliveyoung.domain.point.dto.request.PointPolicyCreateRequest;
+import com.pointliveyoung.forliveyoung.domain.point.dto.PointMapper;
 import com.pointliveyoung.forliveyoung.domain.point.dto.request.PointPolicyModifyRequest;
 import com.pointliveyoung.forliveyoung.domain.point.dto.response.PointPolicyResponse;
 import com.pointliveyoung.forliveyoung.domain.point.entity.PointPolicy;
+import com.pointliveyoung.forliveyoung.domain.point.repository.PointPolicyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +19,9 @@ public class PointPolicyService {
     private final PointPolicyRepository pointPolicyRepository;
 
     @Transactional
-    public void create(PointPolicyCreateRequest request) {
-        PointPolicy entity = PointPolicyMapper.toEntity(request);
-
-        pointPolicyRepository.save(entity);
-    }
-
-    @Transactional
     public void modify(Integer id, PointPolicyModifyRequest request) {
         PointPolicy pointPolicy = pointPolicyRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
-        Optional.ofNullable(request.name()).ifPresent(pointPolicy::changeName);
         Optional.ofNullable(request.expirationDays()).ifPresent(pointPolicy::changeExpirationDays);
         Optional.ofNullable(request.pointAmount()).ifPresent(pointPolicy::changePointAmount);
     }
@@ -39,18 +31,16 @@ public class PointPolicyService {
         PointPolicy pointPolicy = pointPolicyRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
-        boolean newActivate = !pointPolicy.getIsActivation();
+        pointPolicy.toggleActivation();
 
-        pointPolicy.changeIsActivation(newActivate);
-
-        return newActivate;
+        return pointPolicy.getIsActivation();
     }
 
     @Transactional(readOnly = true)
     public List<PointPolicyResponse> getPointPolicies() {
         List<PointPolicy> pointPolicies = pointPolicyRepository.findAll();
 
-        return PointPolicyMapper.toPointPolicyResponseList(pointPolicies);
+        return PointMapper.toPointPolicyResponseList(pointPolicies);
     }
 
 

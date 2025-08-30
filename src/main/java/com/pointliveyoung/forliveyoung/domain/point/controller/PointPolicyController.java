@@ -1,9 +1,8 @@
 package com.pointliveyoung.forliveyoung.domain.point.controller;
 
-import com.pointliveyoung.forliveyoung.domain.point.dto.request.PointPolicyCreateRequest;
 import com.pointliveyoung.forliveyoung.domain.point.dto.request.PointPolicyModifyRequest;
 import com.pointliveyoung.forliveyoung.domain.point.dto.response.PointPolicyResponse;
-import com.pointliveyoung.forliveyoung.domain.point.repository.PointPolicyService;
+import com.pointliveyoung.forliveyoung.domain.point.service.PointPolicyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,16 +18,6 @@ import java.util.List;
 public class PointPolicyController {
     private final PointPolicyService pointPolicyService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> create(@Valid @RequestBody PointPolicyCreateRequest request) {
-        pointPolicyService.create(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .build();
-    }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> update(@PathVariable Integer id,
@@ -39,7 +28,7 @@ public class PointPolicyController {
                 .build();
     }
 
-    @PostMapping("/{id}/toggle-activation")
+    @PutMapping("/{id}/toggle-activation")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Boolean> activate(@PathVariable Integer id) {
         boolean newActivate = pointPolicyService.toggleActivation(id);
