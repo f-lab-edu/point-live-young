@@ -39,6 +39,9 @@ public class User {
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
+    @Column(name = "last_login_at", columnDefinition = "DATETIME(0)")
+    private LocalDateTime lastLoginAt;
+
     private User(String name, String email, String password, LocalDate birthDate) {
         this.name = name;
         this.email = email;
@@ -82,5 +85,9 @@ public class User {
             throw new IllegalArgumentException("UserRole 은 null이거나 비어있을 수 없습니다.");
         }
         this.userRole = userRole;
+    }
+
+    public void recordLogin(LocalDateTime localDateTime) {
+        this.lastLoginAt = localDateTime;
     }
 }
