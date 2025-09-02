@@ -1,7 +1,6 @@
 package com.pointliveyoung.forliveyoung.domain.user.service;
 
-import com.pointliveyoung.forliveyoung.domain.point.event.AttendancePointEvent;
-import com.pointliveyoung.forliveyoung.domain.point.event.SignUpPointEvent;
+import com.pointliveyoung.forliveyoung.domain.point.event.PointEvent;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
 import com.pointliveyoung.forliveyoung.domain.user.token.JwtTokenUtil;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
@@ -52,7 +51,7 @@ public class UserService {
         String refreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getUserRole());
         user.changeRefreshToken(refreshToken);
 
-        eventPublisher.publishEvent(new AttendancePointEvent(user));
+        eventPublisher.publishEvent(new PointEvent(user));
 
         user.recordLogin(LocalDateTime.now());
 

@@ -45,6 +45,11 @@ public class UserPointLot {
         this.pointPolicy = policy;
         this.createdAt = LocalDateTime.now();
         this.status = Status.ACTIVE;
+
+        if (!policy.isPermanent()) {
+            this.expirationAt = this.createdAt.plusDays(policy.getExpirationDays());
+        }
+
     }
 
     public static UserPointLot create(User user, PointPolicy policy, Integer pointBalance) {
@@ -54,12 +59,7 @@ public class UserPointLot {
             throw new IllegalArgumentException("적립 포인트는 1 이상이어야 합니다.");
         }
 
-        UserPointLot userPointLot = new UserPointLot(user, policy, pointBalance);
-        if (!policy.isPermanent()) {
-            userPointLot.expirationAt = userPointLot.getCreatedAt().plusDays(policy.getExpirationDays());
-        }
-
-        return userPointLot;
+        return new UserPointLot(user, policy, pointBalance);
     }
 
     public void expire(LocalDateTime now) {

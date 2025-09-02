@@ -49,7 +49,7 @@ class UserPointServiceTest {
                 .thenReturn(Optional.of(policy));
         when(policy.getIsActivation()).thenReturn(false);
 
-        service.urgentAttendancePoint(mockUser);
+        service.urgentAttendancePoint(mockUser, PolicyType.ATTENDANCE);
 
         verify(repository, never()).save(any(UserPointLot.class));
     }
@@ -65,7 +65,7 @@ class UserPointServiceTest {
                 .thenReturn(Optional.of(policy));
         when(policy.getIsActivation()).thenReturn(true);
 
-        service.urgentAttendancePoint(mockUser);
+        service.urgentAttendancePoint(mockUser, PolicyType.ATTENDANCE);
 
         verify(repository, never()).save(any(UserPointLot.class));
     }
@@ -82,7 +82,7 @@ class UserPointServiceTest {
         when(policy.getIsActivation()).thenReturn(true);
         when(policy.getPointAmount()).thenReturn(300);
 
-        service.urgentAttendancePoint(user);
+        service.urgentAttendancePoint(user, PolicyType.ATTENDANCE);
 
         verify(repository).save(any(UserPointLot.class));
     }
@@ -95,7 +95,7 @@ class UserPointServiceTest {
                 .thenReturn(Optional.empty());
 
         NoSuchElementException exception = assertThrows(NoSuchElementException.class,
-                () -> service.urgentAttendancePoint(user));
+                () -> service.urgentAttendancePoint(user, PolicyType.ATTENDANCE));
 
         assertEquals("포인트 정책이 존재하지 않습니다.", exception.getMessage());
     }
@@ -110,7 +110,7 @@ class UserPointServiceTest {
                 .thenReturn(Optional.of(policy));
         when(policy.getIsActivation()).thenReturn(false);
 
-        service.urgentSignUpPoint(user);
+        service.urgentSignUpPoint(user, PolicyType.SIGN_UP);
 
         verify(repository, never()).save(any(UserPointLot.class));
     }
@@ -126,7 +126,7 @@ class UserPointServiceTest {
         when(policy.getIsActivation()).thenReturn(true);
         when(policy.getPointAmount()).thenReturn(1000);
 
-        service.urgentSignUpPoint(user);
+        service.urgentSignUpPoint(user, PolicyType.SIGN_UP);
 
         verify(repository, times(1)).save(any(UserPointLot.class));
     }
@@ -139,7 +139,7 @@ class UserPointServiceTest {
                 .thenReturn(Optional.empty());
 
         NoSuchElementException exception = assertThrows(NoSuchElementException.class,
-                () -> service.urgentSignUpPoint(user));
+                () -> service.urgentSignUpPoint(user, PolicyType.SIGN_UP));
 
         assertEquals("포인트 정책이 존재하지 않습니다.", exception.getMessage());
     }

@@ -35,12 +35,12 @@ public class UrgentPointScheduler {
                 ? userRepository.findByBirthDate(monthValue, dayValue - 1)
                 : userRepository.findByBirthDate(monthValue, dayValue);
 
-
         pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.BIRTHDAY).filter(PointPolicy::getIsActivation).ifPresent(policy -> {
-
-            for (User user : userList) {
-                userPointRepository.save(UserPointLot.create(user, policy, policy.getPointAmount()));
-            }
+            userList.forEach(user ->
+                    userPointRepository.save(
+                            UserPointLot.create(user, policy, policy.getPointAmount())
+                    )
+            );
         });
     }
 }

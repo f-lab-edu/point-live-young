@@ -26,8 +26,8 @@ public class UserPointService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void urgentAttendancePoint(User user) {
-        PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.ATTENDANCE)
+    public void urgentAttendancePoint(User user, PolicyType policyType) {
+        PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
         if (!pointPolicy.getIsActivation()) {
@@ -43,8 +43,8 @@ public class UserPointService {
     }
 
     @Transactional
-    public void urgentSignUpPoint(User user) {
-        PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.SIGN_UP)
+    public void urgentSignUpPoint(User user, PolicyType policyType) {
+        PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
         if (!pointPolicy.getIsActivation()) {

@@ -1,5 +1,6 @@
 package com.pointliveyoung.forliveyoung.domain.point.event;
 
+import com.pointliveyoung.forliveyoung.domain.point.entity.PolicyType;
 import com.pointliveyoung.forliveyoung.domain.point.service.UserPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,12 +14,12 @@ public class PointEventListener {
     private final UserPointService userPointService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onAttendancePointRegister(AttendancePointEvent event) {
-        userPointService.urgentAttendancePoint(event.user());
+    public void onAttendancePointRegister(PointEvent event) {
+        userPointService.urgentAttendancePoint(event.user(), PolicyType.ATTENDANCE);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onSignUpPointRegister(SignUpPointEvent event) {
-        userPointService.urgentSignUpPoint(event.user());
+    public void onSignUpPointRegister(PointEvent event) {
+        userPointService.urgentSignUpPoint(event.user(), PolicyType.SIGN_UP);
     }
 }
