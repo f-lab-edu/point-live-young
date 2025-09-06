@@ -66,5 +66,13 @@ public class Order {
         this.status = status;
     }
 
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.expiredAt);
+    }
+
+    public void expire() {
+        this.status = OrderStatus.EXPIRED;
+    }
+
 
 }

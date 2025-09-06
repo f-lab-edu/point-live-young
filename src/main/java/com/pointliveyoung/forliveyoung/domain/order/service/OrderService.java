@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -53,29 +54,25 @@ public class OrderService {
         product.decreaseStock(request.quantity());
 
         Order order = Order.create(totalPrice, request.quantity(), product, user);
-        Order saveOrder = orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
         List<OrderPointUsage> orderPointUsages = dockPoint(user.getId(), totalPrice, order);
 
         orderPointUsageRepository.saveAll(orderPointUsages);
 
-        List<OrderItem> orderItemList = new ArrayList<>();
-
-        String productName = product.getName();
-
-        LocalDate orderCreateDate = saveOrder.getCreatedAt().toLocalDate();
-
-        for (int i = 0; i < request.quantity(); i++) {
-            String orderItemCode = generateCode(productName, orderCreateDate);
-            orderItemList.add(OrderItem.create(orderItemCode, request.unitPrice(), saveOrder));
-        }
+        List<OrderItem> orderItemList =
+                IntStream.range(0, request.quantity())
+                        .mapToObj(i -> {
+                            String orderItemCode = generateCode(product.getName());
+                            return OrderItem.create(orderItemCode, request.unitPrice(), savedOrder);
+                        }).toList();
 
         orderItemRepository.saveAll(orderItemList);
 
         return new PurchaseResponse(
-                saveOrder.getId(),
-                saveOrder.getQuantity(),
-                saveOrder.getPurchasePrice(),
+                savedOrder.getId(),
+                savedOrder.getQuantity(),
+                savedOrder.getPurchasePrice(),
                 orderItemList.stream()
                         .map(OrderItem::getProductCode)
                         .toList()
@@ -88,31 +85,27 @@ public class OrderService {
                 .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
         List<Order> orderList = orderRepository.findByUser_IdOrderByCreatedAtDesc(userId);
 
-        List<OrderHistoryResponse> result = new ArrayList<>();
+        return orderList.stream()
+                .map(order -> {
+                    List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(order.getId());
+                    int quantity = orderItems.size();
 
-        for (Order order : orderList) {
-            List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(order.getId());
+                    int unitPrice = orderItems.isEmpty() ? 0 : orderItems.getFirst().getPriceAtPurchase();
+                    List<String> orderItemCodes = orderItems.stream().map(OrderItem::getProductCode).toList();
 
-            int quantity = orderItems.size();
-
-            int unitPrice = orderItems.isEmpty() ? 0 : orderItems.getFirst().getPriceAtPurchase();
-
-            List<String> orderItemCodes = orderItems.stream().map(OrderItem::getProductCode).toList();
-
-            result.add(new OrderHistoryResponse(
-                    order.getId(),
-                    order.getStatus().name(),
-                    order.getProduct().getId(),
-                    order.getProduct().getName(),
-                    quantity,
-                    unitPrice,
-                    order.getPurchasePrice(),
-                    order.getCreatedAt(),
-                    orderItemCodes
-            ));
-
-        }
-        return result;
+                    return new OrderHistoryResponse(
+                            order.getId(),
+                            order.getStatus().name(),
+                            order.getProduct().getId(),
+                            order.getProduct().getName(),
+                            quantity,
+                            unitPrice,
+                            order.getPurchasePrice(),
+                            order.getCreatedAt(),
+                            orderItemCodes
+                    );
+                })
+                .toList();
     }
 
     @Transactional
@@ -126,18 +119,12 @@ public class OrderService {
             throw new IllegalStateException("이미 취소되었거나 취소 불가 상태입니다.");
         }
 
-        if (LocalDateTime.now().isAfter(order.getExpiredAt())) {
-            order.changeStatus(OrderStatus.EXPIRED);
+        if (order.isExpired()) {
+            order.expire();
             throw new IllegalStateException("환불 가능 기한이 지났습니다.");
         }
 
-        Integer quantity = order.getQuantity();
-
-        if (quantity <= 0) {
-            quantity = orderItemRepository.findByOrder_Id(orderId).size();
-        }
-
-        order.getProduct().increaseStock(quantity);
+        order.getProduct().increaseStock(order.getQuantity());
 
         List<OrderPointUsage> usageList = orderPointUsageRepository.findByOrder_Id(orderId);
         int totalCancelPoint = 0;
@@ -189,10 +176,9 @@ public class OrderService {
         return usageList;
     }
 
-    private String generateCode(String productName, LocalDate localDate) {
+    private String generateCode(String productName) {
         StringBuilder sb = new StringBuilder();
         sb.append(productName)
-                .append(localDate.toString())
                 .append(UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase());
 
         return sb.toString();
