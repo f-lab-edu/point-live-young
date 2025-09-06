@@ -35,7 +35,7 @@ public class UserService {
 
         User saveUser = userRepository.save(User.of(request.getName(), request.getEmail(), encodePassword, request.getBirthDate()));
 
-        eventPublisher.publishEvent(new SignUpPointEvent(saveUser));
+        eventPublisher.publishEvent(new PointEvent(saveUser));
     }
 
     @Transactional

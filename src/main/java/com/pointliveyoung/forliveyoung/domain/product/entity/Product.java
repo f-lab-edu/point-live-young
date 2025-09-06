@@ -38,7 +38,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private Category category;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "is_deleted")
     private boolean isDeleted;
 
     private Product(String name, String description, Integer stock, Integer price, Category category) {
@@ -82,6 +82,18 @@ public class Product {
             throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다.");
         }
         this.stock = stock;
+    }
+
+    public void increaseStock(int quantity) {
+        if (quantity <= 0) throw new IllegalArgumentException("수량은 1 이상");
+        this.stock += quantity;
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stock < quantity) {
+            throw new IllegalStateException("재고 부족");
+        }
+        this.stock -= quantity;
     }
 
     public void changePrice(Integer price) {

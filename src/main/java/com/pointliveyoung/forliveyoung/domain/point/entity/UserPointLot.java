@@ -67,4 +67,34 @@ public class UserPointLot {
             this.status = Status.EXPIRED;
         }
     }
+
+    public int dockBalance(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("차감 포인트는 1 이상이어야 한다");
+        }
+
+        if (this.status != Status.ACTIVE) {
+            return 0;
+        }
+
+        if (Objects.nonNull(this.expirationAt) && LocalDateTime.now().isAfter(this.expirationAt)) {
+            this.status = Status.EXPIRED;
+            return 0;
+        }
+        int use = Math.min(this.pointBalance, amount);
+        this.pointBalance -= use;
+
+        if (this.pointBalance == 0) {
+            this.status = Status.USED;
+        }
+        return use;
+    }
+
+    public void cancelPoint(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("다시 되돌아오는 포인트는 1 이상이어야 한다.");
+        }
+        this.pointBalance += amount;
+        this.status = Status.ACTIVE;
+    }
 }

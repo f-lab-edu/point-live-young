@@ -1,5 +1,6 @@
 package com.pointliveyoung.forliveyoung.domain.user.service;
 
+import com.pointliveyoung.forliveyoung.domain.point.event.PointEvent;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.UserCreateRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
@@ -40,6 +42,10 @@ class UserServiceTest {
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+
     private User user;
 
     @BeforeEach
@@ -66,6 +72,7 @@ class UserServiceTest {
         verify(userRepository, times(1)).existsUserByEmail(any(String.class));
         verify(passwordEncoder, times(1)).encode(any(String.class));
         verify(userRepository, times(1)).save(any(User.class));
+        verify(eventPublisher, times(1)).publishEvent(any(PointEvent.class));
     }
 
     @Test
