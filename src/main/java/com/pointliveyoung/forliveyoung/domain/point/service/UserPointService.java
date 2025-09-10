@@ -26,6 +26,15 @@ public class UserPointService {
     private final UserRepository userRepository;
 
     @Transactional
+    public void create(User user, PolicyType policyType){
+        PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
+                .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
+
+
+        userPointRepository.save(UserPointLot.create(user, pointPolicy, pointPolicy.getPointAmount()));
+    }
+
+    @Transactional
     public void urgentAttendancePoint(User user, PolicyType policyType) {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));

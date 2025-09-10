@@ -95,5 +95,18 @@ public class UserService {
         user.invalidateRefreshToken();
     }
 
+    @Transactional(readOnly = true)
+    public User getUserById(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public void checkExistUserById(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NoSuchElementException("해당 사용자가 없습니다.");
+        }
+    }
+
 
 }

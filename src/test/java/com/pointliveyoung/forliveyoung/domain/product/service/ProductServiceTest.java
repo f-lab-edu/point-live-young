@@ -184,5 +184,53 @@ class ProductServiceTest {
         assertEquals(actual.getContent().get(1).category(), Category.CAFE_SNACK);
     }
 
+    @Test
+    @DisplayName("getById() 성공")
+    void getById_success() {
+        Integer id = 1;
+        Product product = Product.create("이름", "설명", 5, 2000, Category.BEAUTY_HEALTH_CARE);
+        ReflectionTestUtils.setField(product, "id", id);
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(product));
+
+        Product result = productService.getById(id);
+
+        assertEquals(product.getId(), result.getId());
+        assertEquals(product.getName(), result.getName());
+        assertEquals(product.getDescription(), result.getDescription());
+        assertEquals(product.getStock(), result.getStock());
+        assertEquals(product.getPrice(), result.getPrice());
+        assertEquals(product.getCategory(), result.getCategory());
+    }
+
+    @Test
+    @DisplayName("getById() 실패 - 존재하지 않은 상품")
+    void getById_fail() {
+        Integer id = 1;
+
+        when(productRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> productService.getById(id));
+    }
+
+    @Test
+    @DisplayName("decreaseStock() 성공")
+    void decreaseStock_success() {
+        Product product = Product.create("이름", "설명", 5, 2000, Category.BEAUTY_HEALTH_CARE);
+
+        productService.decreaseStock(product, 3);
+
+        assertEquals(product.getStock(), 2);
+    }
+
+    @Test
+    @DisplayName("increaseStock() 성공")
+    void increaseStock_success() {
+        Product product = Product.create("이름", "설명", 5, 2000, Category.BEAUTY_HEALTH_CARE);
+
+        productService.increaseStock(product, 3);
+
+        assertEquals(product.getStock(), 8);
+    }
 
 }

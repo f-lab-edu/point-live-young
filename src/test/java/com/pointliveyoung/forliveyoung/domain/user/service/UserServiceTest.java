@@ -279,5 +279,47 @@ class UserServiceTest {
         assertEquals("해당 사용자가 존재하지 않습니다.", noSuchElementException.getMessage());
     }
 
+    @Test
+    @DisplayName("getUserById() 성공")
+    void getUserById_success() {
+        when(userRepository.findById(any(Integer.class))).thenReturn(Optional.of(user));
+        User result = userService.getUserById(1);
+
+        assertEquals(user.getId(), result.getId());
+        assertEquals(user.getName(), result.getName());
+        assertEquals(user.getEmail(), result.getEmail());
+        assertEquals(user.getPassword(), result.getPassword());
+        assertEquals(user.getUserRole(), result.getUserRole());
+        assertEquals(user.getCreatedAt(), result.getCreatedAt());
+        assertEquals(user.getBirthDate(), result.getBirthDate());
+    }
+
+    @Test
+    @DisplayName("getUserById() 실패 - 존재하지 않은 id의 사용자")
+    void getUserById_fail() {
+        when(userRepository.findById(any(Integer.class))).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> userService.getUserById(1));
+    }
+
+    @Test
+    @DisplayName("checkExistUserById() 성공")
+    void checkExistUserById_success() {
+        when(userRepository.existsById(any(Integer.class))).thenReturn(true);
+        userService.checkExistUserById(1);
+        verify(userRepository, times(1)).existsById(1);
+    }
+
+    @Test
+    @DisplayName("checkExistUserById() 실패 - 존재하지 않은 id의 사용자")
+    void checkExistUserById_fail() {
+        when(userRepository.existsById(any(Integer.class))).thenReturn(false);
+
+        assertThrows(NoSuchElementException.class, () -> userService.checkExistUserById(1));
+
+    }
+
+
+
 
 }

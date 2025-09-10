@@ -11,18 +11,16 @@ import com.pointliveyoung.forliveyoung.domain.order.entity.OrderStatus;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderItemRepository;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderPointUsageRepository;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderRepository;
-import com.pointliveyoung.forliveyoung.domain.point.entity.Status;
 import com.pointliveyoung.forliveyoung.domain.point.entity.UserPointLot;
-import com.pointliveyoung.forliveyoung.domain.point.repository.UserPointRepository;
+import com.pointliveyoung.forliveyoung.domain.point.service.PointUseService;
 import com.pointliveyoung.forliveyoung.domain.product.entity.Product;
-import com.pointliveyoung.forliveyoung.domain.product.repository.ProductRepository;
+import com.pointliveyoung.forliveyoung.domain.product.service.ProductService;
 import com.pointliveyoung.forliveyoung.domain.user.entity.User;
-import com.pointliveyoung.forliveyoung.domain.user.repository.UserRepository;
+import com.pointliveyoung.forliveyoung.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -32,18 +30,16 @@ import java.util.stream.IntStream;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
-    private final UserPointRepository userPointRepository;
+    private final ProductService productService;
+    private final UserService userService;
     private final OrderPointUsageRepository orderPointUsageRepository;
+    private final PointUseService pointUseService;
 
     @Transactional
     public PurchaseResponse purchaseProducts(Integer userId, PurchaseRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
+        User user = userService.getUserById(userId);
 
-        Product product = productRepository.findById(request.productId())
-                .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다."));
+        Product product = productService.getById(request.productId());
 
         if (product.getStock() < request.quantity()) {
             throw new IllegalStateException("재고 부족");
@@ -51,19 +47,18 @@ public class OrderService {
 
         int totalPrice = request.unitPrice() * request.quantity();
 
-        product.decreaseStock(request.quantity());
+        productService.decreaseStock(product, request.quantity());
 
         Order order = Order.create(totalPrice, request.quantity(), product, user);
         Order savedOrder = orderRepository.save(order);
 
-        List<OrderPointUsage> orderPointUsages = dockPoint(user.getId(), totalPrice, order);
-
-        orderPointUsageRepository.saveAll(orderPointUsages);
+        pointUseService.consume(userId, totalPrice, savedOrder);
 
         List<OrderItem> orderItemList =
                 IntStream.range(0, request.quantity())
                         .mapToObj(i -> {
                             String orderItemCode = generateCode(product.getName());
+
                             return OrderItem.create(orderItemCode, request.unitPrice(), savedOrder);
                         }).toList();
 
@@ -81,8 +76,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderHistoryResponse> getAllOrders(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
+        userService.checkExistUserById(userId);
+
         List<Order> orderList = orderRepository.findByUser_IdOrderByCreatedAtDesc(userId);
 
         return orderList.stream()
@@ -110,8 +105,7 @@ public class OrderService {
 
     @Transactional
     public OrderCancelResponse cancel(Integer userId, Integer orderId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
+        userService.checkExistUserById(userId);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("해당 주문이 없습니다."));
 
@@ -123,57 +117,25 @@ public class OrderService {
             order.expire();
             throw new IllegalStateException("환불 가능 기한이 지났습니다.");
         }
-
-        order.getProduct().increaseStock(order.getQuantity());
+        productService.increaseStock(order.getProduct(), order.getQuantity());
 
         List<OrderPointUsage> usageList = orderPointUsageRepository.findByOrder_Id(orderId);
         int totalCancelPoint = 0;
         for (OrderPointUsage orderPointUsage : usageList) {
             UserPointLot userPointLot = orderPointUsage.getLot();
 
-            boolean isExpired = Objects.nonNull(userPointLot.getExpirationAt()) &&
-                    LocalDateTime.now().isAfter(userPointLot.getExpirationAt()) ||
-                    userPointLot.getStatus() == Status.EXPIRED;
+            boolean isExpired = userPointLot.isExpired(LocalDateTime.now());
 
             if (!isExpired) {
                 Integer usedAmount = orderPointUsage.getUsedAmount();
                 userPointLot.cancelPoint(usedAmount);
                 totalCancelPoint += usedAmount;
             }
-
         }
 
         order.changeStatus(OrderStatus.CANCELED);
 
         return new OrderCancelResponse(totalCancelPoint);
-    }
-
-
-    private List<OrderPointUsage> dockPoint(Integer userId, int requireTotalPrice, Order order) {
-        List<UserPointLot> userPointLotList = userPointRepository.findActivePointByUser(userId);
-
-        int remainPrice = requireTotalPrice;
-
-        List<OrderPointUsage> usageList = new ArrayList<>();
-
-        for (UserPointLot userPointLot : userPointLotList) {
-            if (remainPrice <= 0) {
-                break;
-            }
-
-            int used = userPointLot.dockBalance(remainPrice);
-
-            if (used > 0) {
-                usageList.add(OrderPointUsage.create(order, userPointLot, used));
-                remainPrice -= used;
-            }
-        }
-
-        if (remainPrice > 0) {
-            throw new IllegalStateException("포인트가 부족합니다.");
-        }
-
-        return usageList;
     }
 
     private String generateCode(String productName) {
