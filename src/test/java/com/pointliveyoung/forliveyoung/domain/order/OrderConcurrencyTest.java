@@ -4,8 +4,12 @@ import com.pointliveyoung.forliveyoung.domain.order.dto.request.PurchaseRequest;
 import com.pointliveyoung.forliveyoung.domain.order.dto.response.PurchaseResponse;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderRepository;
 import com.pointliveyoung.forliveyoung.domain.order.service.OrderService;
+import com.pointliveyoung.forliveyoung.domain.point.entity.PointPolicy;
 import com.pointliveyoung.forliveyoung.domain.point.entity.PolicyType;
+import com.pointliveyoung.forliveyoung.domain.point.repository.PointPolicyRepository;
+import com.pointliveyoung.forliveyoung.domain.point.service.PointPolicyService;
 import com.pointliveyoung.forliveyoung.domain.point.service.UserPointService;
+import com.pointliveyoung.forliveyoung.domain.product.entity.Category;
 import com.pointliveyoung.forliveyoung.domain.product.entity.Product;
 import com.pointliveyoung.forliveyoung.domain.product.repository.ProductRepository;
 import com.pointliveyoung.forliveyoung.domain.product.service.ProductService;
@@ -15,10 +19,16 @@ import com.pointliveyoung.forliveyoung.domain.user.service.UserService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -27,8 +37,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-@ActiveProfiles("test")
-public class OrderConcurrencyTest {
+@Testcontainers
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+@Sql(scripts = "classpath:sql/clean.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+class OrderConcurrencyTest {
+
+    @Container
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.3")
+            .withDatabaseName("forliveyoung_test")
+            .withUsername("root")
+            .withPassword("1234");
+    @Autowired
+    private PointPolicyService pointPolicyService;
+    @Autowired
+    private PointPolicyRepository pointPolicyRepository;
+
+    @DynamicPropertySource
+    static void overrideProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.properties.hibernate.jdbc.time_zone", () -> "UTC");
+        registry.add("spring.jpa.show-sql", () -> "false");
+        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "false");
+        registry.add("jwt.secret", () -> "test-secret");
+        registry.add("jwt.access-token-seconds", () -> 900);
+        registry.add("jwt.refresh-token-seconds", () -> 604800);
+
+    }
+
+
     @Autowired
     private OrderService orderService;
 
@@ -39,9 +78,6 @@ public class OrderConcurrencyTest {
     private UserService userService;
 
     @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -50,6 +86,20 @@ public class OrderConcurrencyTest {
     @Autowired
     private UserPointService userPointService;
 
+    @BeforeEach
+    void setUp() {
+        List<User> userList = new ArrayList<>();
+        for (int i = 0; i <= 50; i++) {
+            userList.add(User.of("name" + i, i + "@naver.com", "password", LocalDate.of(1999, 8, 8)));
+        }
+
+        userRepository.saveAll(userList);
+
+        pointPolicyRepository.save(PointPolicy.create(PolicyType.NORMAL, 365, 1000));
+
+        Product product = Product.create("medi Serum", "vitamin serum", 10, 1000, Category.BEAUTY_HEALTH_CARE);
+        productRepository.save(product);
+    }
 
 
     @DisplayName("오버셀 재현 - 재고 3, 스레드 50 → 성공이 4건 이상이면 레이스 발생, (20번 테스트)")
