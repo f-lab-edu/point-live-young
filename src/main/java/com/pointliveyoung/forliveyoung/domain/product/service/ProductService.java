@@ -64,4 +64,21 @@ public class ProductService {
 
         return productRepository.search(keyword, category, minPrice, maxPrice, isStockAvailable, pageable);
     }
+
+    @Transactional(readOnly = true)
+    public Product getById(Integer productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다."));
+    }
+
+    @Transactional
+    public void decreaseStock(Product product, int stock) {
+        product.decreaseStock(stock);
+    }
+
+    @Transactional
+    public void increaseStock(Product product, int stock) {
+        product.increaseStock(stock);
+    }
+
 }

@@ -45,9 +45,4 @@ out/
 # idea 전부 무시
 .idea/**
 
-
-# 설정 파일
-/src/main/resources/**.yml
-/src/main/resources/**.properties
-
 /logs/**

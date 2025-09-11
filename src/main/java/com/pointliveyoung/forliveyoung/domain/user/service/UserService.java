@@ -35,7 +35,7 @@ public class UserService {
 
         User saveUser = userRepository.save(User.of(request.getName(), request.getEmail(), encodePassword, request.getBirthDate()));
 
-        eventPublisher.publishEvent(new SignUpPointEvent(saveUser));
+        eventPublisher.publishEvent(new PointEvent(saveUser));
     }
 
     @Transactional
@@ -93,6 +93,19 @@ public class UserService {
                 .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
 
         user.invalidateRefreshToken();
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserById(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public void checkExistUserById(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NoSuchElementException("해당 사용자가 없습니다.");
+        }
     }
 
 
