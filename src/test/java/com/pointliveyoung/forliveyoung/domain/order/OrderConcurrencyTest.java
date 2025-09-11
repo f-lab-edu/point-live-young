@@ -2,7 +2,6 @@ package com.pointliveyoung.forliveyoung.domain.order;
 
 import com.pointliveyoung.forliveyoung.domain.order.dto.request.PurchaseRequest;
 import com.pointliveyoung.forliveyoung.domain.order.dto.response.PurchaseResponse;
-import com.pointliveyoung.forliveyoung.domain.order.repository.OrderRepository;
 import com.pointliveyoung.forliveyoung.domain.order.service.OrderService;
 import com.pointliveyoung.forliveyoung.domain.point.entity.PointPolicy;
 import com.pointliveyoung.forliveyoung.domain.point.entity.PolicyType;
