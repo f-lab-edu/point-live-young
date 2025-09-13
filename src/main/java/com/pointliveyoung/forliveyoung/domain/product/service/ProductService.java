@@ -72,6 +72,12 @@ public class ProductService {
     }
 
     @Transactional
+    public Product getByIdForUpdate(Integer productId) {
+        return productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다."));
+    }
+
+    @Transactional
     public void decreaseStock(Product product, int stock) {
         product.decreaseStock(stock);
     }

@@ -39,7 +39,7 @@ public class OrderService {
     public PurchaseResponse purchaseProducts(Integer userId, PurchaseRequest request) {
         User user = userService.getUserById(userId);
 
-        Product product = productService.getById(request.productId());
+        Product product = productService.getByIdForUpdate(request.productId());
 
         if (product.getStock() < request.quantity()) {
             throw new IllegalStateException("재고 부족");
@@ -109,6 +109,10 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("해당 주문이 없습니다."));
 
+        if (!order.getUser().getId().equals(userId)) {
+            throw new SecurityException("본인의 주문만 취소할 수 있습니다.");
+        }
+
         if (order.getStatus() != OrderStatus.COMPLETED) {
             throw new IllegalStateException("이미 취소되었거나 취소 불가 상태입니다.");
         }
@@ -117,7 +121,10 @@ public class OrderService {
             order.expire();
             throw new IllegalStateException("환불 가능 기한이 지났습니다.");
         }
-        productService.increaseStock(order.getProduct(), order.getQuantity());
+
+        Product lockProduct = productService.getByIdForUpdate(order.getProduct().getId());
+
+        productService.increaseStock(lockProduct, order.getQuantity());
 
         List<OrderPointUsage> usageList = orderPointUsageRepository.findByOrder_Id(orderId);
         int totalCancelPoint = 0;

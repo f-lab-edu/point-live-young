@@ -6,7 +6,7 @@ TRUNCATE TABLE `order`;
 TRUNCATE TABLE user_point_lot;
 TRUNCATE TABLE point_policy;
 TRUNCATE TABLE product;
-TRUNCATE TABLE user;
+TRUNCATE TABLE `user`;
 
 SET
 FOREIGN_KEY_CHECKS = 1;
