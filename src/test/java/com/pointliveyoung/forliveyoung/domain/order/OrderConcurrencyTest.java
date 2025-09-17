@@ -123,23 +123,16 @@ class OrderConcurrencyTest {
 
         int threads = 50;
         ExecutorService pool = Executors.newFixedThreadPool(threads);
-        CountDownLatch start = new CountDownLatch(1);
-        CountDownLatch done = new CountDownLatch(threads);
-
         CyclicBarrier barrier = new CyclicBarrier(threads);
+        CountDownLatch done = new CountDownLatch(threads);
 
         List<Integer> successOrderIds = new CopyOnWriteArrayList<>();
         List<Throwable> failures = new CopyOnWriteArrayList<>();
-
 
         for (int i = 0; i < threads; i++) {
             final int idx = i;
             pool.submit(() -> {
                 try {
-                    start.await();
-
-                    productService.getById(product.getId());
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(0, 4));
                     barrier.await();
 
                     User u = userList.get(idx);
@@ -153,14 +146,16 @@ class OrderConcurrencyTest {
             });
         }
 
-        start.countDown();
         assertTrue(done.await(20, TimeUnit.SECONDS), "시간 내 완료");
         pool.shutdown();
-
-
         int successes = successOrderIds.size();
-        assertTrue(successes >= 4,
-                "오버셀(동시 다수 성공) 재현 기대: 성공=" + successes + ", 실패=" + failures.size());
+
+        assertTrue(successes <= 3,
+                "오버셀 발생 - 성공 건수 = " + successes + ", 실패 = " + failures.size());
+
+        Product reloaded = productRepository.findById(product.getId()).orElseThrow();
+        assertEquals(3 - successes, reloaded.getStock(), "남은 재고 일치");
+        assertEquals(3 - reloaded.getStock(), successes, "주문 수량 합계 일치");
     }
 
     @Test
