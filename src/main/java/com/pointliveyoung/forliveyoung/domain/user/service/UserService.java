@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -106,6 +107,13 @@ public class UserService {
         if (!userRepository.existsById(userId)) {
             throw new NoSuchElementException("해당 사용자가 없습니다.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> findByBirthDate(boolean isLeapYear, int month, int day) {
+        return isLeapYear
+                ? userRepository.findByBirthDate(month, day - 1)
+                : userRepository.findByBirthDate(month, day);
     }
 
 
