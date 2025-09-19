@@ -9,11 +9,13 @@ import com.pointliveyoung.forliveyoung.domain.point.repository.PointPolicyReposi
 import com.pointliveyoung.forliveyoung.domain.point.repository.UserPointRepository;
 import com.pointliveyoung.forliveyoung.domain.user.entity.User;
 import com.pointliveyoung.forliveyoung.domain.user.repository.UserRepository;
+import com.pointliveyoung.forliveyoung.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -24,9 +26,10 @@ public class UserPointService {
     private final UserPointRepository userPointRepository;
     private final PointPolicyRepository pointPolicyRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Transactional
-    public void create(User user, PolicyType policyType){
+    public void create(User user, PolicyType policyType) {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
@@ -63,11 +66,20 @@ public class UserPointService {
         userPointRepository.save(userPointLot);
     }
 
+    @Transactional
+    public void updateStatusToExpiredPoints(Integer userId) {
+        userService.checkExistUserById(userId);
+        LocalDateTime now = LocalDateTime.now();
+        userPointRepository.updateStatusToExpiredByUser(userId, now);
+    }
+
     @Transactional(readOnly = true)
     public List<UserPointResponse> getAllByUser(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 사용자가 없습니다."));
-        List<UserPointLot> userPointLotList = userPointRepository.findAllByUserOrderByCreatedAtDesc(user);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<UserPointLot> userPointLotList = userPointRepository.findPointsByUser(user.getId(), false, now);
 
         return PointMapper.toUserPointResponseList(userPointLotList);
     }
