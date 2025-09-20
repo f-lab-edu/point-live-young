@@ -19,7 +19,7 @@ public class UserPointRepositoryImpl implements UserPointRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public void updateStatusToExpiredByUser(Integer userId, LocalDateTime now) {
+    public void updateExpiredPointsByDateTime(Integer userId, LocalDateTime now) {
         QUserPointLot userPointLot = QUserPointLot.userPointLot;
 
         BooleanBuilder whereQuery = new BooleanBuilder()
