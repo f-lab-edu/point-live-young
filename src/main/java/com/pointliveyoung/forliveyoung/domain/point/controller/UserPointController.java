@@ -24,7 +24,7 @@ public class UserPointController {
     @GetMapping
     public ResponseEntity<List<UserPointResponse>> getAllUserPoint(@AuthenticationPrincipal Integer userId) {
         try {
-            userPointService.updateStatusToExpiredPoints(userId);
+            userPointService.updateExpiredPointsByNow(userId);
         } catch (Exception e) {
             log.warn("만료 보정(updateStatusToExpiredPoints) 실패. userId={}", userId, e);
         }

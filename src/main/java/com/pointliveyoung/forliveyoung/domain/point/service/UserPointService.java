@@ -67,7 +67,7 @@ public class UserPointService {
     }
 
     @Transactional
-    public void updateStatusToExpiredPoints(Integer userId) {
+    public void updateExpiredPointsByNow(Integer userId) {
         userService.checkExistUserById(userId);
         LocalDateTime now = LocalDateTime.now();
         userPointRepository.updateStatusToExpiredByUser(userId, now);
