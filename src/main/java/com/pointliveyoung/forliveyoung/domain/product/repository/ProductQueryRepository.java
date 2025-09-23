@@ -6,8 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProductQueryRepository {
-    Page<ProductBriefResponse> search(String keyword,
-                                      Category category,
+    Page<ProductBriefResponse> search(Category category,
                                       Integer minPrice,
                                       Integer maxPrice,
                                       boolean isStockAvailable,
