@@ -31,7 +31,7 @@ public class PointUseService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        List<UserPointLot> userPointLotList = userPointRepository.findActivePointByUser(userId, now);
+        List<UserPointLot> userPointLotList = userPointRepository.findPointsByUser(userId, true, now);
 
         List<PointUsePlan> planList = pointUsePolicy.makePointUsePlan(userPointLotList, requireAmount);
 

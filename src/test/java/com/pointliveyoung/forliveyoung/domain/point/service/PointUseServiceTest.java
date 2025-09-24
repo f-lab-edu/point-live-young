@@ -45,7 +45,7 @@ class PointUseServiceTest {
         when(lot1.getId()).thenReturn(1);
         when(lot2.getId()).thenReturn(2);
 
-        when(userPointRepository.findActivePointByUser(any(Integer.class), any(LocalDateTime.class)))
+        when(userPointRepository.findPointsByUser(any(Integer.class), any(Boolean.class), any(LocalDateTime.class)))
                 .thenReturn(List.of(lot1, lot2));
 
         List<PointUsePlan> plans = List.of(
@@ -59,7 +59,7 @@ class PointUseServiceTest {
 
         pointUseService.consume(userId, requireAmount, order);
 
-        verify(userPointRepository, times(1)).findActivePointByUser(eq(userId), any(LocalDateTime.class));
+        verify(userPointRepository, times(1)).findPointsByUser(eq(userId), any(), any(LocalDateTime.class));
         verify(pointUsePolicy, times(1)).makePointUsePlan(anyList(), eq(requireAmount));
 
         verify(lot1).expireIfNeeded(any(LocalDateTime.class));
