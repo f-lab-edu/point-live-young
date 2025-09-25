@@ -163,7 +163,7 @@ class UserPointServiceTest {
         ReflectionTestUtils.setField(entity2, "createdAt", localDateTime);
 
         List<UserPointLot> entityList = List.of(entity1, entity2);
-        when(repository.findAllByUserOrderByCreatedAtDesc(any(User.class))).thenReturn(entityList);
+        when(repository.findPointsByUser(any(Integer.class), any(Boolean.class), any(LocalDateTime.class))).thenReturn(entityList);
 
         UserPointResponse response1 = new UserPointResponse(1000, localDateTime, localDateTime.plusDays(100), Status.ACTIVE, PolicyType.BIRTHDAY);
         UserPointResponse response2 = new UserPointResponse(2000, localDateTime, localDateTime.plusDays(100), Status.ACTIVE, PolicyType.BIRTHDAY);
