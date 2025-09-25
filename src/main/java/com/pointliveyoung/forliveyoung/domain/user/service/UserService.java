@@ -111,9 +111,11 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<User> findByBirthDate(boolean isLeapYear, int month, int day) {
-        return isLeapYear
-                ? userRepository.findByBirthDate(month, day - 1)
-                : userRepository.findByBirthDate(month, day);
+        if (isLeapYear && month == 2 && day == 28) {
+            return userRepository.findByBirthDateIn(month, List.of(28, 29));
+        }
+
+        return userRepository.findByBirthDate(month, day);
     }
 
 

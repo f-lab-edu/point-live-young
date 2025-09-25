@@ -79,7 +79,7 @@ class BirthdayPointServiceTest {
         when(userService.findByBirthDate(any(Boolean.class), any(Integer.class), any(Integer.class)))
                 .thenReturn(List.of(user1, user2));
 
-        ReflectionTestUtils.setField(pointPolicy, "isActivation", false);
+        ReflectionTestUtils.setField(pointPolicy, "isActive", false);
 
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.BIRTHDAY))
                 .thenReturn(Optional.of(pointPolicy));
@@ -106,5 +106,12 @@ class BirthdayPointServiceTest {
 
         verify(userPointRepository, never()).existsByUserAndPointPolicyAndCreatedAtBetween(any(), any(), any(), any());
         verify(birthdayPointRetryService, never()).grantPointsToUser(any(), any());
+    }
+
+
+    @DisplayName("")
+    @Test
+    void grantd(){
+
     }
 }

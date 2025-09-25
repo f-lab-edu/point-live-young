@@ -67,11 +67,11 @@ class PointPolicyServiceTest {
         PointPolicy entity = PointPolicy.create(PolicyType.BIRTHDAY, 1000, 4000);
         when(repository.findById(any(Integer.class))).thenReturn(Optional.of(entity));
 
-        assertTrue(entity.getIsActivation());
+        assertTrue(entity.getIsActive());
 
         service.toggleActivation(id);
 
-        assertFalse(entity.getIsActivation());
+        assertFalse(entity.getIsActive());
     }
 
     @Test
@@ -119,8 +119,8 @@ class PointPolicyServiceTest {
         assertEquals(expected.get(0).pointAmount(), result.get(0).pointAmount());
         assertEquals(expected.get(1).pointAmount(), result.get(1).pointAmount());
 
-        assertEquals(expected.get(0).isActivation(), result.get(0).isActivation());
-        assertEquals(expected.get(1).isActivation(), result.get(1).isActivation());
+        assertEquals(expected.get(0).isActive(), result.get(0).isActive());
+        assertEquals(expected.get(1).isActive(), result.get(1).isActive());
 
     }
 

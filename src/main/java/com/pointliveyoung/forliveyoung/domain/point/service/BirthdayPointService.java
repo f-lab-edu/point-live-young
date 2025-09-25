@@ -35,7 +35,7 @@ public class BirthdayPointService {
         LocalDateTime endOfDay = today.plusDays(1).atStartOfDay().minusNanos(1);
 
         pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.BIRTHDAY)
-                .filter(PointPolicy::getIsActivation)
+                .filter(PointPolicy::getIsActive)
                 .ifPresent(policy ->
                         userList.stream()
                                 .filter(user -> !userPointRepository.existsByUserAndPointPolicyAndCreatedAtBetween(user, policy, startOfDay, endOfDay))

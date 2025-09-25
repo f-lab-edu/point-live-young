@@ -25,7 +25,7 @@ public final class PointMapper {
                 pointPolicy.getId(),
                 pointPolicy.getPolicyType(),
                 pointPolicy.getExpirationDays(),
-                pointPolicy.getIsActivation(),
+                pointPolicy.getIsActive(),
                 pointPolicy.getPointAmount());
     }
 

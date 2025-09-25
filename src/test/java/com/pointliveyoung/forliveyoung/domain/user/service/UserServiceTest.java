@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -319,7 +320,60 @@ class UserServiceTest {
 
     }
 
+    @DisplayName("비윤년 2/28 플래그면 28일, 29일 동시 조회(findByBirthDateIn) 호출")
+    @Test
+    void findByBirthDate_test1() {
+        boolean isLeapYear = true;
+        int month = 2;
+        int day = 28;
 
+        User user1 = User.of("u1", "user1@user.com", "pass", LocalDate.of(1990, 2, 28));
+        User user2 = User.of("u2", "user2@user.com", "pass", LocalDate.of(1992, 2, 29));
+        when(userRepository.findByBirthDateIn(eq(month), eq(List.of(28, 29))))
+                .thenReturn(List.of(user1, user2));
+
+        List<User> result = userService.findByBirthDate(isLeapYear, month, day);
+
+        assertEquals(result.size(), 2);
+
+        verify(userRepository, times(1)).findByBirthDateIn(eq(2), eq(List.of(28, 29)));
+        verify(userRepository, never()).findByBirthDate(anyInt(), anyInt());
+    }
+
+    @DisplayName("플래그가 false면 일반 조회(findByBirthDate) 호출")
+    @Test
+    void findByBirthDate_test2() {
+        boolean isLeapYear = false;
+        int month = 3, day = 1;
+
+        User user1 = User.of("u1", "user1@user.com", "pass", LocalDate.of(1990, 2, 28));
+        when(userRepository.findByBirthDate(eq(month), eq(day)))
+                .thenReturn(List.of(user1));
+
+        List<User> result = userService.findByBirthDate(isLeapYear, month, day);
+
+        assertEquals(result.size(), 1);
+        verify(userRepository, times(1)).findByBirthDate(eq(3), eq(1));
+        verify(userRepository, never()).findByBirthDateIn(anyInt(), anyList());
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @DisplayName("플래그가 true여도 2/28이 아니면 일반 조회(findByBirthDate) 호출")
+    @Test
+    void findByBirthDate_test3() {
+        boolean isLeapYearComp = true;
+        int month = 2, day = 27;
+
+        when(userRepository.findByBirthDate(eq(month), eq(day)))
+                .thenReturn(List.of());
+
+        List<User> result = userService.findByBirthDate(isLeapYearComp, month, day);
+
+        assertTrue(result.isEmpty());
+        verify(userRepository, times(1)).findByBirthDate(eq(2), eq(27));
+        verify(userRepository, never()).findByBirthDateIn(anyInt(), anyList());
+        verifyNoMoreInteractions(userRepository);
+    }
 
 
 }
