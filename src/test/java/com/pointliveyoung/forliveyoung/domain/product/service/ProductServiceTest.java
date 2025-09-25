@@ -158,17 +158,17 @@ class ProductServiceTest {
         Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "price"));
 
         List<ProductBriefResponse> content = List.of(
-                new ProductBriefResponse(1, "돌체라떼", 30, 3000, Category.CAFE_SNACK),
-                new ProductBriefResponse(2, "라떼", 15, 4500, Category.CAFE_SNACK)
+                new ProductBriefResponse(1, "돌체라떼", 30, 3000, Category.CAFE_SNACK.getCategoryName()),
+                new ProductBriefResponse(2, "라떼", 15, 4500, Category.CAFE_SNACK.getCategoryName())
         );
         Page<ProductBriefResponse> expected = new PageImpl<>(content, pageable, 2);
 
-        when(productRepository.search(keyword, category, minPrice, maxPrice, inStock, pageable))
+        when(productRepository.search(category, minPrice, maxPrice, inStock, pageable))
                 .thenReturn(expected);
 
 
         Page<ProductBriefResponse> actual =
-                productService.searchProducts(keyword, category, minPrice, maxPrice, inStock, pageable);
+                productService.searchProducts(null, category, minPrice, maxPrice, inStock, pageable);
 
         assertNotNull(actual);
         assertEquals(actual.getContent().size(), 2);
@@ -180,8 +180,8 @@ class ProductServiceTest {
         assertEquals(actual.getContent().get(1).stock(), 15);
         assertEquals(actual.getContent().get(0).price(), 3000);
         assertEquals(actual.getContent().get(1).price(), 4500);
-        assertEquals(actual.getContent().get(0).category(), Category.CAFE_SNACK);
-        assertEquals(actual.getContent().get(1).category(), Category.CAFE_SNACK);
+        assertEquals(actual.getContent().get(0).category(), Category.CAFE_SNACK.getCategoryName());
+        assertEquals(actual.getContent().get(1).category(), Category.CAFE_SNACK.getCategoryName());
     }
 
     @Test
