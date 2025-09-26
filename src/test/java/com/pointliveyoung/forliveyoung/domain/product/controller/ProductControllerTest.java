@@ -177,8 +177,8 @@ class ProductControllerTest {
     void search_success() throws Exception {
         var pageReq = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "price"));
         var content = List.of(
-                new ProductBriefResponse(1, "돌체라떼", 30, 3000, Category.CAFE_SNACK),
-                new ProductBriefResponse(2, "라떼", 10, 4500, Category.CAFE_SNACK)
+                new ProductBriefResponse(1, "돌체라떼", 30, 3000, Category.CAFE_SNACK.getCategoryName()),
+                new ProductBriefResponse(2, "라떼", 10, 4500, Category.CAFE_SNACK.getCategoryName())
         );
         var page = new PageImpl<>(content, pageReq, 2);
 
@@ -196,13 +196,13 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.content[0].name").value("돌체라떼"))
                 .andExpect(jsonPath("$.content[0].stock").value(30))
                 .andExpect(jsonPath("$.content[0].price").value(3000))
-                .andExpect(jsonPath("$.content[0].category").value(Category.CAFE_SNACK.name()))
+                .andExpect(jsonPath("$.content[0].category").value(Category.CAFE_SNACK.getCategoryName()))
 
                 .andExpect(jsonPath("$.content[1].id").value(2))
                 .andExpect(jsonPath("$.content[1].name").value("라떼"))
                 .andExpect(jsonPath("$.content[1].stock").value(10))
                 .andExpect(jsonPath("$.content[1].price").value(4500))
-                .andExpect(jsonPath("$.content[1].category").value(Category.CAFE_SNACK.name()));
+                .andExpect(jsonPath("$.content[1].category").value(Category.CAFE_SNACK.getCategoryName()));
     }
 
     @Test

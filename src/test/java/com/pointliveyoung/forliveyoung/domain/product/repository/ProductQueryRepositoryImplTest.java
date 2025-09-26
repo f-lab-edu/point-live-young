@@ -77,7 +77,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("")
     void search_test() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(null, null, null, null, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, null, null, false, page);
 
         assertEquals(5, result.getTotalElements());
     }
@@ -86,7 +86,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("keyword(name/description) 검색")
     void search_test_keyword() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
+        Page<ProductBriefResponse> result = productRepository.searchFulltext(
                 "serum", null, null, null, false, page);
 
         assertEquals(1, result.getTotalElements());
@@ -97,8 +97,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("카테고리 필터")
     void search_test_category() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, category1, null, null, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(category1, null, null, false, page);
 
         assertEquals(3, result.getTotalElements());
     }
@@ -107,8 +106,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("최대 가격 이하(maxPrice) 조건 필터")
     void search_test_price_max() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, null, null, 7000, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, null, 7000, false, page);
 
         assertEquals(4, result.getTotalElements());
     }
@@ -117,8 +115,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("최소 가격 이상(minPrice) 조건 필터")
     void search_test_price_min() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, null, 6000, null, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, 6000, null, false, page);
 
         assertEquals(3, result.getTotalElements());
     }
@@ -127,8 +124,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("최소, 최대 가격 범위(minPrice~maxPrice) 조건 필터")
     void search_test_price_min_max() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, null, 7000, 20000, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, 7000, 20000, false, page);
 
         assertEquals(2, result.getTotalElements());
     }
@@ -138,8 +134,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("재고 있음(isStockAvailable=true)만")
     void search_test_isStock() {
         PageRequest page = PageRequest.of(0, 10);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, null, null, null, true, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, null, null, true, page);
 
         assertEquals(4, result.getTotalElements());
     }
@@ -148,8 +143,7 @@ class ProductQueryRepositoryImplTest {
     @DisplayName("페이징: page=0 size=2 → 2건 / 총 5건")
     void search_test_page() {
         PageRequest page = PageRequest.of(0, 2);
-        Page<ProductBriefResponse> result = productRepository.search(
-                null, null, null, null, false, page);
+        Page<ProductBriefResponse> result = productRepository.search(null, null, null, false, page);
 
         assertEquals(5, result.getTotalElements());
         assertEquals(2, result.getContent().size());

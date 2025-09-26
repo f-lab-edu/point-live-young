@@ -4,7 +4,6 @@ import com.pointliveyoung.forliveyoung.domain.product.dto.response.ProductBriefR
 import com.pointliveyoung.forliveyoung.domain.product.entity.Category;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,7 +24,7 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
     private static final QProduct product = QProduct.product;
 
     @Override
-    public Page<ProductBriefResponse> search(String keyword,
+    public Page<ProductBriefResponse> search(
                                              Category category,
                                              Integer minPrice,
                                              Integer maxPrice,
@@ -33,7 +32,6 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
                                              Pageable pageable) {
 
         BooleanExpression isDeletedBooleanExpression = product.isDeleted.isFalse();
-        BooleanExpression keyWordBooleanExpression = keyword(keyword);
         BooleanExpression categoryBooleanExpression = Objects.isNull(category) ? null : product.category.eq(category);
         BooleanExpression minPriceBooleanExpression = Objects.isNull(minPrice) ? null : product.price.goe(minPrice);
         BooleanExpression maxPriceBooleanExpression = Objects.isNull(maxPrice) ? null : product.price.loe(maxPrice);
@@ -46,11 +44,10 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
                         product.name,
                         product.stock,
                         product.price,
-                        product.category
+                        product.category.stringValue()
                 ))
                 .from(product)
                 .where(isDeletedBooleanExpression,
-                        keyWordBooleanExpression,
                         categoryBooleanExpression,
                         minPriceBooleanExpression,
                         maxPriceBooleanExpression,
@@ -63,7 +60,6 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         Long totalCount = query.select(product.count())
                 .from(product)
                 .where(isDeletedBooleanExpression,
-                        keyWordBooleanExpression,
                         categoryBooleanExpression,
                         minPriceBooleanExpression,
                         maxPriceBooleanExpression,
@@ -74,9 +70,4 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         return new PageImpl<>(queryResult, pageable, Objects.isNull(totalCount) ? 0 : totalCount);
     }
 
-    private BooleanExpression keyword(String keyword) {
-        if (Objects.isNull(keyword) || keyword.trim().isEmpty()) return null;
-        return product.name.containsIgnoreCase(keyword)
-                .or(product.description.containsIgnoreCase(keyword));
-    }
 }
