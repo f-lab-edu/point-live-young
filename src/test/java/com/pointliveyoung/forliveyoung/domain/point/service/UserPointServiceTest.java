@@ -47,7 +47,7 @@ class UserPointServiceTest {
         PointPolicy policy = mock(PointPolicy.class);
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.ATTENDANCE))
                 .thenReturn(Optional.of(policy));
-        when(policy.getIsActivation()).thenReturn(false);
+        when(policy.getIsActive()).thenReturn(false);
 
         service.urgentAttendancePoint(mockUser, PolicyType.ATTENDANCE);
 
@@ -63,7 +63,7 @@ class UserPointServiceTest {
         PointPolicy policy = mock(PointPolicy.class);
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.ATTENDANCE))
                 .thenReturn(Optional.of(policy));
-        when(policy.getIsActivation()).thenReturn(true);
+        when(policy.getIsActive()).thenReturn(true);
 
         service.urgentAttendancePoint(mockUser, PolicyType.ATTENDANCE);
 
@@ -79,7 +79,7 @@ class UserPointServiceTest {
         PointPolicy policy = mock(PointPolicy.class);
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.ATTENDANCE))
                 .thenReturn(Optional.of(policy));
-        when(policy.getIsActivation()).thenReturn(true);
+        when(policy.getIsActive()).thenReturn(true);
         when(policy.getPointAmount()).thenReturn(300);
 
         service.urgentAttendancePoint(user, PolicyType.ATTENDANCE);
@@ -108,7 +108,7 @@ class UserPointServiceTest {
         PointPolicy policy = mock(PointPolicy.class);
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.SIGN_UP))
                 .thenReturn(Optional.of(policy));
-        when(policy.getIsActivation()).thenReturn(false);
+        when(policy.getIsActive()).thenReturn(false);
 
         service.urgentSignUpPoint(user, PolicyType.SIGN_UP);
 
@@ -123,7 +123,7 @@ class UserPointServiceTest {
         PointPolicy policy = mock(PointPolicy.class);
         when(pointPolicyRepository.findPointPolicyByPolicyType(PolicyType.SIGN_UP))
                 .thenReturn(Optional.of(policy));
-        when(policy.getIsActivation()).thenReturn(true);
+        when(policy.getIsActive()).thenReturn(true);
         when(policy.getPointAmount()).thenReturn(1000);
 
         service.urgentSignUpPoint(user, PolicyType.SIGN_UP);

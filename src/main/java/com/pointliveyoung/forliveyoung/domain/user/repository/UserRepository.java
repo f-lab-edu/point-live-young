@@ -20,4 +20,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             """)
     List<User> findByBirthDate(@Param("month") int month,
                                @Param("day") int day);
+
+    @Query("""
+            select u from User u 
+            where month(u.birthDate) = :month
+            and day(u.birthDate) in :days
+
+            """)
+    List<User> findByBirthDateIn(@Param("month") int month,
+                                 @Param("days") List<Integer> days);
 }

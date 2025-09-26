@@ -24,7 +24,7 @@ public class PointPolicy {
     private Integer expirationDays;
 
     @Column(nullable = false, name = "is_activation")
-    private Boolean isActivation;
+    private Boolean isActive;
 
     @Column(nullable = false, name = "point_amount")
     private Integer pointAmount;
@@ -47,7 +47,7 @@ public class PointPolicy {
         this.policyType = policyType;
         this.expirationDays = expirationDays;
         this.pointAmount = pointAmount;
-        this.isActivation = true;
+        this.isActive = true;
     }
 
     public void changeExpirationDays(Integer days) {
@@ -59,7 +59,7 @@ public class PointPolicy {
     }
 
     public void toggleActivation() {
-        this.isActivation = !this.isActivation;
+        this.isActive = !this.isActive;
     }
 
     public boolean isPermanent() {

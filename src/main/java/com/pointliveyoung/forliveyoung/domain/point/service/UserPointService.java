@@ -42,7 +42,7 @@ public class UserPointService {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
-        if (!pointPolicy.getIsActivation()) {
+        if (!pointPolicy.getIsActive()) {
             return;
         }
 
@@ -59,7 +59,7 @@ public class UserPointService {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
 
-        if (!pointPolicy.getIsActivation()) {
+        if (!pointPolicy.getIsActive()) {
             return;
         }
         UserPointLot userPointLot = UserPointLot.create(user, pointPolicy, pointPolicy.getPointAmount());

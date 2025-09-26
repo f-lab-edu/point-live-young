@@ -33,7 +33,7 @@ public class PointPolicyService {
 
         pointPolicy.toggleActivation();
 
-        return pointPolicy.getIsActivation();
+        return pointPolicy.getIsActive();
     }
 
     @Transactional(readOnly = true)
