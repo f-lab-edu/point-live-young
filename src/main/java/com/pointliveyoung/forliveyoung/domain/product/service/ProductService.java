@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -62,7 +63,12 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductBriefResponse> searchProducts(String keyword, Category category, Integer minPrice, Integer maxPrice, boolean isStockAvailable, Pageable pageable) {
 
-        return productRepository.search(keyword, category, minPrice, maxPrice, isStockAvailable, pageable);
+        if (Objects.isNull(keyword) || keyword.isBlank()) {
+
+        return productRepository.search( category, minPrice, maxPrice, isStockAvailable, pageable);
+        }
+
+        return productRepository.searchFulltext(keyword, category, minPrice, maxPrice, isStockAvailable, pageable);
     }
 
     @Transactional(readOnly = true)
