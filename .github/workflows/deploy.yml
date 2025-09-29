@@ -56,10 +56,10 @@ jobs:
             docker rm pointliveyoung-server || true
             docker pull ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
             docker run -d --name pointliveyoung-server -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL= "${{ secrets.SPRING_DATASOURCE_URL }}" \
-            -e SPRING_DATASOURCE_USERNAME= "${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
-            -e SPRING_DATASOURCE_PASSWORD= "${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
-            -e JWT_SCRET= "${{ secrets.JWT_SECRET }}" \
-            ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
+              -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
+              -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
 
-            docker ps -filter "name=pointliveyoung-server"
+            docker ps --filter "name=pointliveyoung-server"
