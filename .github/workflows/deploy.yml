@@ -51,6 +51,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script_stop: true
+          command_timeout: 30m
+          request_pty : false
+          debug: true
           script: |
             docker stop pointliveyoung-server || true
             docker rm pointliveyoung-server || true
