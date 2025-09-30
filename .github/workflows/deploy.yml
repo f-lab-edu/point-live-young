@@ -28,7 +28,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: ci
     runs-on: ubuntu-latest
-    concurrency: :
+    concurrency:
       group: 'deploy-to-ec2'
       cancel-in-progress: true
 
