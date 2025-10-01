@@ -1,6 +1,7 @@
 package com.pointliveyoung.forliveyoung.domain.user.service;
 
-import com.pointliveyoung.forliveyoung.domain.point.event.PointEvent;
+import com.pointliveyoung.forliveyoung.domain.point.event.AttendancePointEvent;
+import com.pointliveyoung.forliveyoung.domain.point.event.SignUpPointEvent;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
 import com.pointliveyoung.forliveyoung.domain.user.token.JwtTokenUtil;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
@@ -13,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -36,7 +36,7 @@ public class UserService {
 
         User saveUser = userRepository.save(User.of(request.getName(), request.getEmail(), encodePassword, request.getBirthDate()));
 
-        eventPublisher.publishEvent(new PointEvent(saveUser));
+        eventPublisher.publishEvent(new SignUpPointEvent(saveUser));
     }
 
     @Transactional
@@ -52,10 +52,7 @@ public class UserService {
         String refreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getUserRole());
         user.changeRefreshToken(refreshToken);
 
-        eventPublisher.publishEvent(new PointEvent(user));
-
-        user.recordLogin(LocalDateTime.now());
-
+        eventPublisher.publishEvent(new AttendancePointEvent(user));
 
         return new AuthTokens(accessToken, refreshToken);
     }

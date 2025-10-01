@@ -8,6 +8,8 @@ import com.pointliveyoung.forliveyoung.domain.order.entity.Order;
 import com.pointliveyoung.forliveyoung.domain.order.entity.OrderItem;
 import com.pointliveyoung.forliveyoung.domain.order.entity.OrderPointUsage;
 import com.pointliveyoung.forliveyoung.domain.order.entity.OrderStatus;
+import com.pointliveyoung.forliveyoung.domain.order.event.PurchaseCancelEvent;
+import com.pointliveyoung.forliveyoung.domain.order.event.PurchaseCompletedEvent;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderItemRepository;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderPointUsageRepository;
 import com.pointliveyoung.forliveyoung.domain.order.repository.OrderRepository;
@@ -18,6 +20,7 @@ import com.pointliveyoung.forliveyoung.domain.product.service.ProductService;
 import com.pointliveyoung.forliveyoung.domain.user.entity.User;
 import com.pointliveyoung.forliveyoung.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,7 @@ public class OrderService {
     private final UserService userService;
     private final OrderPointUsageRepository orderPointUsageRepository;
     private final PointUseService pointUseService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PurchaseResponse purchaseProducts(Integer userId, PurchaseRequest request) {
@@ -63,6 +67,20 @@ public class OrderService {
                         }).toList();
 
         orderItemRepository.saveAll(orderItemList);
+
+        List<String> codeList = orderItemList.stream()
+                .map(OrderItem::getProductCode)
+                .toList();
+
+        eventPublisher.publishEvent(
+                new PurchaseCompletedEvent(
+                        user.getEmail(),
+                        request.quantity(),
+                        totalPrice,
+                        product.getName(),
+                        codeList
+                )
+        );
 
         return new PurchaseResponse(
                 savedOrder.getId(),
@@ -141,6 +159,14 @@ public class OrderService {
         }
 
         order.changeStatus(OrderStatus.CANCELED);
+
+        eventPublisher.publishEvent(
+                new PurchaseCancelEvent(
+                        order.getUser().getEmail(),
+                        order.getQuantity(),
+                        totalCancelPoint,
+                        order.getProduct().getName()
+                ));
 
         return new OrderCancelResponse(totalCancelPoint);
     }

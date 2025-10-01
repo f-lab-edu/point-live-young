@@ -12,6 +12,7 @@ import com.pointliveyoung.forliveyoung.domain.user.repository.UserRepository;
 import com.pointliveyoung.forliveyoung.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -37,7 +38,7 @@ public class UserPointService {
         userPointRepository.save(UserPointLot.create(user, pointPolicy, pointPolicy.getPointAmount()));
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void urgentAttendancePoint(User user, PolicyType policyType) {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
@@ -54,7 +55,7 @@ public class UserPointService {
         userPointRepository.save(userPointLot);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void urgentSignUpPoint(User user, PolicyType policyType) {
         PointPolicy pointPolicy = pointPolicyRepository.findPointPolicyByPolicyType(policyType)
                 .orElseThrow(() -> new NoSuchElementException("포인트 정책이 존재하지 않습니다."));
