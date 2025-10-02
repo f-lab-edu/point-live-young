@@ -1,6 +1,6 @@
 package com.pointliveyoung.forliveyoung.domain.user.service;
 
-import com.pointliveyoung.forliveyoung.domain.point.event.PointEvent;
+import com.pointliveyoung.forliveyoung.domain.point.event.AttendancePointEvent;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.LoginRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.request.UserCreateRequest;
 import com.pointliveyoung.forliveyoung.domain.user.dto.response.AuthTokens;
@@ -73,7 +73,7 @@ class UserServiceTest {
         verify(userRepository, times(1)).existsUserByEmail(any(String.class));
         verify(passwordEncoder, times(1)).encode(any(String.class));
         verify(userRepository, times(1)).save(any(User.class));
-        verify(eventPublisher, times(1)).publishEvent(any(PointEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(AttendancePointEvent.class));
     }
 
     @Test
