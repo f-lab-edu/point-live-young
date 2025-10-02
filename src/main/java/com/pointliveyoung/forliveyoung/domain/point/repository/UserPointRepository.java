@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface UserPointRepository extends JpaRepository<UserPointLot, Integer> {
+public interface UserPointRepository extends JpaRepository<UserPointLot, Integer>, UserPointRepositoryCustom {
 
     List<UserPointLot> findAllByUserOrderByCreatedAtDesc(User user);
 
