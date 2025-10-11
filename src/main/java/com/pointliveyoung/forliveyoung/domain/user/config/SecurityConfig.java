@@ -49,7 +49,13 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users", "api/users/login", "/api/users/refresh").permitAll()
+                        .requestMatchers(
+                                "/api/users",
+                                "/api/users/login",
+                                "/api/users/refresh",
+                                "/actuator/health",
+                                "/actuator/prometheus",
+                                "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .anyRequest().authenticated()
                 )
