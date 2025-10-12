@@ -88,6 +88,7 @@ jobs:
             
             docker pull ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
             docker run -d --name pointliveyoung-server --restart unless-stopped \
+              --network app-net \
               -p 8080:8080 \
               -v /opt/app/logs:/opt/app/logs \
               -e SPRING_PROFILES_ACTIVE=prod \
