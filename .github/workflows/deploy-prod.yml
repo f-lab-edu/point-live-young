@@ -1,9 +1,7 @@
-name: ci/cd to ec2
+name: ci/cd to ec2 prod
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 
