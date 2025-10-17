@@ -1,10 +1,8 @@
-name: ci/cd to ec2
+name: ci/cd to ec2 prod
 
 on:
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 
 jobs:
@@ -81,12 +79,14 @@ jobs:
           script: |
             set -e
             sudo mkdir -p /opt/app/logs
-            sudo chown $USER:$USER /opt/app/logs  
+            sudo chown $USER:$USER /opt/app/logs
             
             docker stop pointliveyoung-server || true
             docker rm pointliveyoung-server || true
             
-            docker pull ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
+            REG="${{ secrets.ECR_REGISTRY }}"
+            docker pull $REG/pointliveyoung-server:latest
+            
             docker run -d --name pointliveyoung-server --restart unless-stopped \
               --network app-net \
               -p 8080:8080 \
@@ -100,6 +100,6 @@ jobs:
               -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
               -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              ${{ steps.login-ecr.outputs.registry }}/pointliveyoung-server:latest
+              $REG/pointliveyoung-server:latest
 
             docker ps --filter "name=pointliveyoung-server"
