@@ -1,0 +1,102 @@
+name: deploy sandbox on PR
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  APP_NAME: pointliveyoung-server
+
+jobs:
+  ci:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build
+        run: ./gradlew clean build -x test
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: 'deploy-to-ec2-sandbox'
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS Resource에 접근할 수 있게 AWS  Credentials 설정하기
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ECR에 로그인하기
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 생성
+        run: docker build -t ${{ env.APP_NAME }} .
+
+      - name: Docker 이미지 태그 붙이기 (short sha + sandbox-latest)
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::8}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          REG="${{ steps.login-ecr.outputs.registry }}"
+          docker tag ${{ env.APP_NAME }} $REG/${{ env.APP_NAME }}:$IMAGE_TAG
+          docker tag ${{ env.APP_NAME }} $REG/${{ env.APP_NAME }}:sandbox-latest
+
+      - name: ECR에 Docker 이미지 push (short sha + sandbox-latest)
+        run: |
+          REG="${{ steps.login-ecr.outputs.registry }}"
+          docker push $REG/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
+          docker push $REG/${{ env.APP_NAME }}:sandbox-latest
+
+      - name: SSH로 EC2 접속하여 배포 (sandbox)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
+          command_timeout: 30m
+          request_pty: false
+          debug: true
+          script: |
+            set -e
+            sudo mkdir -p /opt/app/logs
+            sudo chown $USER:$USER /opt/app/logs
+            
+            docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
+            
+            docker stop pointliveyoung-server-sandbox || true
+            docker rm pointliveyoung-server-sandbox || true
+            
+            REG="${{ secrets.ECR_REGISTRY }}"
+            docker pull $REG/${{ env.APP_NAME }}:sandbox-latest
+            
+            docker run -d --name pointliveyoung-server-sandbox --restart unless-stopped \
+                --network app-net \
+                -p 8081:8080 \
+                -v /opt/app/logs:/opt/app/logs \
+                -e SPRING_PROFILES_ACTIVE=develop \
+                -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL_SB }}" \
+                -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME_SB }}" \
+                -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD_SB }}" \
+                -e JWT_SECRET="${{ secrets.JWT_SECRET_SB }}" \
+                $REG/${{ env.APP_NAME }}:sandbox-latest
+            
+              docker ps --filter "name=pointliveyoung-server-sandbox"
+              docker image prune -af --filter "until=48h" || true

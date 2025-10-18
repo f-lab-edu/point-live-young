@@ -27,7 +27,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, Prod
                    p.price,
                    p.category
             FROM product p
-            IGNORE INDEX FOR ORDER BY (idx_ft_product_name_desc)
             WHERE p.is_deleted = FALSE
               AND MATCH(p.product_name, p.description)
                   AGAINST (:kw IN NATURAL LANGUAGE MODE)

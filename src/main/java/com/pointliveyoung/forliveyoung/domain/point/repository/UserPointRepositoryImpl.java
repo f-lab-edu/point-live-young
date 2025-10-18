@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
 @RequiredArgsConstructor
 public class UserPointRepositoryImpl implements UserPointRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
