@@ -14,12 +14,12 @@ public class PointEventListener {
     private final UserPointService userPointService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onAttendancePointRegister(PointEvent event) {
+    public void onAttendancePointRegister(AttendancePointEvent event) {
         userPointService.urgentAttendancePoint(event.user(), PolicyType.ATTENDANCE);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onSignUpPointRegister(PointEvent event) {
+    public void onSignUpPointRegister(SignUpPointEvent event) {
         userPointService.urgentSignUpPoint(event.user(), PolicyType.SIGN_UP);
     }
 }
