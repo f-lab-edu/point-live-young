@@ -8,7 +8,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
-public class PurchaseEmailHandler {
+public class PurchaseEmailListener {
 
     private final EmailService emailService;
 
